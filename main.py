@@ -1,29 +1,28 @@
 import pygame
 import sys
-from objects import Player, Warhead, Backgroud, Menu
-from constants import size
+from objects import Player, Warhead, Backgroud, Menu, Enemy
+from constants import *
+
 
 pygame.init()
 pygame.display.set_caption("Hello")
 
 screen = pygame.display.set_mode(size)
 
-
-def info():
-    fontObj2 = pygame.font.Font('freesansbold.ttf', 30)
-    textSurfaceObj2 = fontObj2.render('Чтобы поставить на паузу нажмите "Esc"',True,  (0, 0, 0), (100, 100, 100))
-    textRectObj2 = textSurfaceObj2.get_rect()
-    textRectObj2.center = (500, 20)
-    screen.blit(textSurfaceObj2, textRectObj2)
-
 warheads = pygame.sprite.Group()
-
 background = Backgroud()
 player = Player(warheads)
-#warhead = Warhead(player.rect.midtop)
+
+all_obj = pygame.sprite.Group()
+all_obj.add(player)
+all_obj.add(background)
+enemys = pygame.sprite.Group()
+
+#enemy = Enemy()
+
 clock = pygame.time.Clock()
 
-menu = Menu(screen)
+menu = Menu(clock, screen)
 menu.pause()
 
 game = True
@@ -37,15 +36,27 @@ while game:
     if keys[pygame.K_ESCAPE]:
         menu.pause()
 
+
+
+    score = Enemy.generationEnemy(enemys, score)
     background.update()
     player.update()
     warheads.update()
+    enemys.update(player)
+
+
+    score = Player.hitting(score, enemys, warheads)
+    Player.crash(player, enemys, menu)
+    print(score)
+    #print(list(pygame.sprite.groupcollide(enemys, warheads, True, True)))    #Удаляет объекты если они пересекаются
 
     screen.blit(background.image, background.rect)
     warheads.draw(screen)
     screen.blit(player.image, player.rect)
-    #screen.blit(warhead.image, warhead.rect)
-    info()
+    enemys.draw(screen)
+
+    menu.render_score(score)
+    menu.info()
     player.render_timer(screen)     #показатель перезарядки
 
     pygame.display.flip()
